@@ -4,9 +4,11 @@
  */
 package esercitazione_hashed_download.grafica;
 
+import esercitazione_hashed_download.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import java.io.*;
 
 /**
  *
@@ -16,7 +18,17 @@ public class InterfacciaUploader extends JFrame implements ActionListener {
     
     private Container container = this.getContentPane();
     
+    private JPanel ipPanel = new JPanel();
+    private JLabel ipLabel = new JLabel("IP:");
+    private JTextField ipTextField = new JTextField();
+    private JLabel portLabel = new JLabel("Porta:");
+    private JTextField portTextField = new JTextField();
+    private JButton connectButton = new JButton("Connettiti");
+    
     private JPanel centralPanel = new JPanel();
+    private JButton fileChooserButton = new JButton("Scegli File");
+    private JComboBox hashComboBox = new JComboBox();
+    private JButton sendButton = new JButton("Invia");
     
     private JPanel topPanel = new JPanel();
     private JLabel titleTopLabel = new JLabel("Uploader");
@@ -29,7 +41,27 @@ public class InterfacciaUploader extends JFrame implements ActionListener {
         topPanel.setBackground(Color.LIGHT_GRAY);
         titleTopLabel.setFont(new Font("Monospaced", Font.BOLD, 30));
         
+        sendButton.addActionListener(this);
+        fileChooserButton.addActionListener(this);
+        connectButton.addActionListener(this);
+        
+        hashComboBox.addItem("MD5");
+        hashComboBox.addItem("SHA-1");
+        
         topPanel.add(titleTopLabel);
+        
+        ipPanel.add(ipLabel);
+        ipPanel.add(ipTextField);
+        ipPanel.add(Box.createRigidArea(new Dimension(100,0)));
+        ipPanel.add(portLabel);
+        ipPanel.add(portTextField);
+        ipPanel.add(Box.createRigidArea(new Dimension(20,0)));
+        ipPanel.add(connectButton);
+        
+        centralPanel.add(fileChooserButton);
+        centralPanel.add(hashComboBox);
+        centralPanel.add(Box.createRigidArea(new Dimension(100,0)));
+        centralPanel.add(sendButton);
         
         container.add(topPanel, BorderLayout.NORTH);
         container.add(centralPanel, BorderLayout.CENTER);
@@ -42,8 +74,42 @@ public class InterfacciaUploader extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         
+        if (e.getSource() == fileChooserButton) {
+            
+            JFileChooser fileChooser = new JFileChooser();
+            int returnValue = fileChooser.showOpenDialog(this);
+            
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = fileChooser.getSelectedFile();
+                if (selectedFile == null) {
+                    JOptionPane.showMessageDialog(this, "Nessun file selezionato!", "ERRORE: File non trovato", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                String algorithm = (String) hashComboBox.getSelectedItem();
+                
+                //UploaderRunnable.calculateHash(selectedFile, algorithm);
+                
+                
+            } else {
+                System.out.println("Nessun file selezionato.");
+            }
+        }
+        
+        if (e.getSource() == connectButton) {
+            try {
+                String ip = ipTextField.getText();
+                int port = Integer.parseInt(portTextField.getText());
+                Thread uploaderThread = new Thread(new UploaderRunnable(ip, port));
+                uploaderThread.start();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(null, "Controlla i campi per la connessione!");
+            }
+        }
         
         
     }
+    
+            
     
 }
