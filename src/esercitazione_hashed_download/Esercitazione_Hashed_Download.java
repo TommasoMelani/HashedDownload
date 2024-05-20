@@ -17,7 +17,7 @@ public class Esercitazione_Hashed_Download {
      */
     public static void main(String[] args) {
         
-        new InterfacciaScelta("Prova");
+        new InterfacciaScelta("Hashed Download");
         
     }
     

@@ -33,6 +33,9 @@ public class InterfacciaDownloader extends JFrame implements ActionListener {
     
     private JPanel flowPanel = new JPanel();
     
+    private JPanel tablePanel = new JPanel();
+    private JTable table = new JTable();
+    
     public String ipAddress;
     
     public InterfacciaDownloader(String title) {
