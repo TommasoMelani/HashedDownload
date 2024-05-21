@@ -5,6 +5,7 @@
 package esercitazione_hashed_download.grafica;
 
 import javax.swing.*;
+import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.net.InetAddress;
@@ -33,8 +34,16 @@ public class InterfacciaDownloader extends JFrame implements ActionListener {
     
     private JPanel flowPanel = new JPanel();
     
+    public String[] columnsName = {"IP ", "Nome File", "Hash", "Integrità"};
+    
     private JPanel tablePanel = new JPanel();
-    private JTable table = new JTable();
+    public DefaultTableModel modelTable = new DefaultTableModel(columnsName, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Disabilita la modifica per tutte le celle
+            }
+        };
+    private JTable table = new JTable(modelTable);
     
     public String ipAddress;
     
@@ -44,6 +53,20 @@ public class InterfacciaDownloader extends JFrame implements ActionListener {
         this.setBounds(100,100,800,600);
         
         flowPanel.setLayout(new FlowLayout());
+        
+        TableColumn column1 = table.getColumnModel().getColumn(0);
+        column1.setPreferredWidth(200);
+        
+        TableColumn column2 = table.getColumnModel().getColumn(1);
+        column2.setPreferredWidth(300);
+
+        TableColumn column3 = table.getColumnModel().getColumn(2);
+        column3.setPreferredWidth(200);
+        
+        TableColumn column4 = table.getColumnModel().getColumn(3);
+        column3.setPreferredWidth(100);
+        
+        modelTable.addRow(columnsName);
         
         ipTextField.setEditable(false);
         ipTextField.setPreferredSize(new Dimension(100,25));
@@ -67,11 +90,15 @@ public class InterfacciaDownloader extends JFrame implements ActionListener {
         
         topPanel.add(titleTopLabel);
         
+        tablePanel.add(table);
+        
         flowPanel.add(ipPanel);
         flowPanel.add(centralPanel);
+        flowPanel.add(tablePanel);
         
         container.add(topPanel, BorderLayout.NORTH);
         container.add(flowPanel);
+        
         
         this.setVisible(true);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);

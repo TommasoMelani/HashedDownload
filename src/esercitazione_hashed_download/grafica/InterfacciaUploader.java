@@ -9,6 +9,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.io.*;
+import javax.swing.filechooser.*;
 
 /**
  *
@@ -30,6 +31,7 @@ public class InterfacciaUploader extends JFrame implements ActionListener {
     private JPanel centralPanel = new JPanel();
     private JButton fileChooserButton = new JButton("Scegli File");
     private JComboBox hashComboBox = new JComboBox();
+    public JRadioButton corruptedButton = new JRadioButton("Corrompi");
     public JButton sendButton = new JButton("Invia");
     
     private JPanel topPanel = new JPanel();
@@ -76,7 +78,9 @@ public class InterfacciaUploader extends JFrame implements ActionListener {
         
         centralPanel.add(fileChooserButton);
         centralPanel.add(hashComboBox);
-        centralPanel.add(Box.createRigidArea(new Dimension(100,0)));
+        centralPanel.add(Box.createRigidArea(new Dimension(30,0)));
+        centralPanel.add(corruptedButton);
+        centralPanel.add(Box.createRigidArea(new Dimension(30,0)));
         centralPanel.add(sendButton);
         
         flowPanel.add(ipPanel);
@@ -96,6 +100,7 @@ public class InterfacciaUploader extends JFrame implements ActionListener {
         if (e.getSource() == fileChooserButton) {
             
             JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileFilter(new FileNameExtensionFilter("File .txt", "txt"));
             int returnValue = fileChooser.showOpenDialog(this);
             
             if (returnValue == JFileChooser.APPROVE_OPTION) {
@@ -119,6 +124,11 @@ public class InterfacciaUploader extends JFrame implements ActionListener {
         
         if (e.getSource() == connectButton) {
             try {
+                if (selectedFile == null) {
+                    JOptionPane.showMessageDialog(this, "Non è stato selezionato alcun file.\nPer favore selezionarne uno.", "ATTENZIONE!", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                
                 String ip = ipTextField.getText();
                 int port = Integer.parseInt(portTextField.getText());
                 Thread uploaderThread = new Thread(new UploaderRunnable(ip, port, this, selectedFile, usedAlgorithm));

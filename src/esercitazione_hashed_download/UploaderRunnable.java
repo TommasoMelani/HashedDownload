@@ -22,9 +22,9 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Base64;
+import java.nio.file.*;
+import java.util.*;
 
 
 /**
@@ -61,37 +61,86 @@ public class UploaderRunnable implements Runnable {
         uploaderSendButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (selectedFile != null) {
-                    try {
-                        DataInputStream dataInputStream = new DataInputStream(uploaderSocket.getInputStream());
-                        DataOutputStream dataOutputStream = new DataOutputStream(uploaderSocket.getOutputStream());
-                        ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-                        
-                        String fileBytes = selectedFile.toPath().toString();
-                        System.out.println("SENDING FILE: " + fileBytes);
-                        objectOutputStream.writeObject(fileBytes); // INVIA IL FILE NELLA SOCKET
-                        
-                        BufferedReader reader = new BufferedReader(new FileReader(selectedFile.getAbsolutePath()));
-                        StringBuilder content = new StringBuilder();
-                        String line;
+                    if (!uploaderInterf.corruptedButton.isSelected()) {
+                        try {
+                            DataInputStream dataInputStream = new DataInputStream(uploaderSocket.getInputStream());
+                            DataOutputStream dataOutputStream = new DataOutputStream(uploaderSocket.getOutputStream());
+                            ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
 
-                        while ((line = reader.readLine()) != null) {
-                            content.append(line);
-                            content.append(System.lineSeparator());
+                            String fileBytes = selectedFile.toPath().toString();
+                            System.out.println("SENDING FILE: " + fileBytes);
+                            objectOutputStream.writeObject(fileBytes); // INVIA IL FILE NELLA SOCKET
+                            objectOutputStream.flush();
+
+                            BufferedReader reader = new BufferedReader(new FileReader(selectedFile.getAbsolutePath()));
+                            StringBuilder content = new StringBuilder();
+                            String line;
+
+                            while ((line = reader.readLine()) != null) {
+                                content.append(line);
+                                content.append(System.lineSeparator());
+                            }
+                            String contentFileBytes = content.toString();
+                            objectOutputStream.writeObject(contentFileBytes); // INVIA IL CONTENUTO DEL FILE NELLA SOCKET
+                            objectOutputStream.flush();
+
+                            System.out.println("SENDING ALGORITHM: " + usedAlgorithm);
+                            objectOutputStream.writeObject(usedAlgorithm); // INVIA L'ALGORITMO NELLA SOCKET
+                            objectOutputStream.flush();
+
+                            String fileHashed =  UploaderRunnable.calculateHash(selectedFile, usedAlgorithm);
+                            System.out.println("SENDING PERSONAL HASH: " + fileHashed);
+                            objectOutputStream.writeObject(fileHashed);
+                            objectOutputStream.flush();
+
+                        
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(null, "Errore!\n" + ex.getLocalizedMessage());
                         }
-                        String contentFileBytes = content.toString();
-                        objectOutputStream.writeObject(contentFileBytes); // INVIA IL CONTENUTO DEL FILE NELLA SOCKET
+                    } else {
                         
-                        System.out.println("SENDING ALGORITHM: " + usedAlgorithm);
-                        objectOutputStream.writeObject(usedAlgorithm); // INVIA L'ALGORITMO NELLA SOCKET
+                        try {
+                            DataInputStream dataInputStream = new DataInputStream(uploaderSocket.getInputStream());
+                            DataOutputStream dataOutputStream = new DataOutputStream(uploaderSocket.getOutputStream());
+                            ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+
+                            Path fileBytes = selectedFile.toPath();
+                            File file = fileBytes.toFile();
+                            File corruptedFile = generateCorruptedFile(file);
+                            
+                            String corruptedFileBytes = corruptedFile.toPath().toString();
+                            System.out.println("SENDING FILE: " + corruptedFileBytes);
+                            objectOutputStream.writeObject(corruptedFileBytes); // INVIA IL FILE NELLA SOCKET
+                            objectOutputStream.flush();
+
+                            BufferedReader reader = new BufferedReader(new FileReader(selectedFile.getAbsolutePath()));
+                            StringBuilder content = new StringBuilder();
+                            String line;
+
+                            while ((line = reader.readLine()) != null) {
+                                content.append(line);
+                                content.append(System.lineSeparator());
+                            }
+                            String contentFileBytes = content.toString();
+                            objectOutputStream.writeObject(contentFileBytes); // INVIA IL CONTENUTO DEL FILE NELLA SOCKET
+                            objectOutputStream.flush();
+
+                            System.out.println("SENDING ALGORITHM: " + usedAlgorithm);
+                            objectOutputStream.writeObject(usedAlgorithm); // INVIA L'ALGORITMO NELLA SOCKET
+                            objectOutputStream.flush();
+
+                            String fileHashed =  UploaderRunnable.calculateHash(selectedFile, usedAlgorithm);
+                            System.out.println("SENDING PERSONAL HASH: " + fileHashed);
+                            objectOutputStream.writeObject(fileHashed);
+                            objectOutputStream.flush();
+
                         
-                        String fileHashed =  UploaderRunnable.calculateHash(selectedFile, usedAlgorithm);
-                        System.out.println("SENDING PERSONAL HASH: " + fileHashed);
-                        objectOutputStream.writeObject(fileHashed);
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(null, "Errore!\n" + ex.getLocalizedMessage());
+                        }
                         
-                        
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(null, "Errore!\n" + ex.getLocalizedMessage());
                     }
+                    
                 } else {
                     JOptionPane.showMessageDialog(null, "Errore!\nNessun file trovato!\nControlla di aver selezionato il file prima di effettuare la connessione!");
                 }
@@ -114,19 +163,6 @@ public class UploaderRunnable implements Runnable {
             
             JOptionPane.showMessageDialog(null, "Connessione stabilita!\n");
             
-            byte[] clientBuffer = new byte[2048];
-            int bytesRead;
-
-        
-            
-            while ((bytesRead = inputStream.read(clientBuffer)) != 1) {
-
-                
-                
-                
-                 
-            }
-            
         } catch (Exception ex) {
             if (ex instanceof NullPointerException) {
                 try {
@@ -135,7 +171,7 @@ public class UploaderRunnable implements Runnable {
                     ioex.printStackTrace();
                 }
             } else {
-                JOptionPane.showMessageDialog(null, "Connessione interrotta:\n" + ex);
+                JOptionPane.showMessageDialog(null, "Connessione interrotta:\n" + ex + "\nRIGA 142 UploaderRunnable");
             }
         }
     }
@@ -159,6 +195,45 @@ public class UploaderRunnable implements Runnable {
         }
         return "null";
     }
-
+    
+    private File generateCorruptedFile(File file) {
+        
+        File newFile = new File(file.getParentFile().getAbsolutePath() + "/corrupted_" + file.getName());
+        
+        try {
+            
+            int length = 1000;
+            String randomChars = randomCharsGenerated(length);
+            
+            List<String> lines = Files.readAllLines(newFile.toPath());
+            StringBuilder content = new StringBuilder();
+            for (String line : lines) {
+                content.append(line).append("\n");
+            }
+            
+            int insertPosition = new Random().nextInt(content.length());
+            content.insert(insertPosition, randomChars);
+            
+            Files.write(newFile.toPath(), content.toString().getBytes(), StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+            
+            return newFile;
+            
+        } catch (Exception ex) {
+            
+        }
+        
+        return newFile;
+    }
+    
+    private String randomCharsGenerated(int length) {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
+    
+    }
     
 }

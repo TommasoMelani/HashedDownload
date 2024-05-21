@@ -37,66 +37,69 @@ public class DownloaderRunnable implements Runnable{
     
     @Override
     public void run() {
+        
         try {
             
-            downloaderSocket = new ServerSocket(portDownloader);
-            
-            JOptionPane.showMessageDialog(null, "Connessione stabilita!\n");
-            
-            
-            
+            downloaderSocket = new ServerSocket(portDownloader);  
+
+            JOptionPane.showMessageDialog(null, "Connessione aperta!\n");
+
             uploaderSocket = downloaderSocket.accept();
-            System.out.println("CONNESSIONE EFFETTUATA!");
+            JOptionPane.showMessageDialog(null, "Connessione stabilita!\nIP: " + uploaderSocket.getInetAddress().getHostAddress() + "\nPorta: " + uploaderSocket.getPort());
             
             inputStream = uploaderSocket.getInputStream();
             outputStream = uploaderSocket.getOutputStream();
-            DataInputStream dataInputStream = new DataInputStream(uploaderSocket.getInputStream());
             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
 
-            String fileBytes = (String) objectInputStream.readObject();
-            if (fileBytes == null) {
-                JOptionPane.showMessageDialog(null, "Nessun file ricevuto!", "ERRORE", JOptionPane.ERROR_MESSAGE);
+            while (true) {
+                try {
+                    String fileBytes = (String) objectInputStream.readObject();
+                    if (fileBytes == null) {
+                        JOptionPane.showMessageDialog(null, "Nessun file ricevuto!", "ERRORE", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        receiveMessages(fileBytes, objectInputStream);
+                    }
+                    downloaderSocket.close();
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
             }
-            System.out.println("FILE RICEVUTO: " + fileBytes);
-            Path receivedFilePath = Paths.get(fileBytes);
-            File receivedFile = receivedFilePath.toFile();
-            System.out.println(receivedFile);
-            
-            String content = (String) objectInputStream.readObject(); // RICEVE IL CONTENUTO DEL FILE DALLA SOCKET
-            System.out.println("CONTENUTO:\n" + content); 
-            
-            String algorithm = (String) objectInputStream.readObject(); // RICEVE L'ALGORITMO DALLA SOCKET
-            System.out.println("ALGORITMO: " + algorithm);
-            
-            String calculatedHash = UploaderRunnable.calculateHash(receivedFile, algorithm);
-            System.out.println("HASH CALCOLATO:" + calculatedHash);
-            
-            String hashReceived = (String) objectInputStream.readObject();
-            System.out.println("HASH RICEVUTO:" + hashReceived);
-            
-            if (hashReceived.equalsIgnoreCase(calculatedHash)) {
-                System.out.println("FILE INTEGRO!");
-            } else {
-                System.out.println("FILE CORROTTO!");
-            }
-            
-            
             
             
         } catch (Exception ex) {
-            if (ex instanceof NullPointerException) {
-                try {
-                    downloaderSocket.close();
-                } catch (IOException ioex) {
-                    ioex.printStackTrace();
-                }
-            } else {
-                JOptionPane.showMessageDialog(null, "Connessione interrotta:\n" + ex);
+            try {
+                downloaderSocket.close();
+            } catch (IOException ioex) {
+                
             }
-            
         }
         
+    }
+    
+    private void receiveMessages(String fileBytes, ObjectInputStream objectInputStream) throws Exception {
         
+        Path receivedFilePath = Paths.get(fileBytes);
+        File receivedFile = receivedFilePath.toFile();
+
+        String content = (String) objectInputStream.readObject(); // RICEVE IL CONTENUTO DEL FILE DALLA SOCKET
+        
+        String algorithm = (String) objectInputStream.readObject(); // RICEVE L'ALGORITMO DALLA SOCKET
+
+        String calculatedHash = UploaderRunnable.calculateHash(receivedFile, algorithm);
+        System.out.println(calculatedHash);
+        
+        String hashReceived = (String) objectInputStream.readObject();
+
+        String status = "";
+        if (hashReceived.equalsIgnoreCase(calculatedHash)) {
+            status = "INTEGRO";
+        } else {
+            status = "CORROTTO";
+        }
+
+        String[] values = {uploaderSocket.getInetAddress().getHostAddress() + ":" + uploaderSocket.getPort() ,receivedFile.getName(), calculatedHash, status};
+
+        downloaderIntrf.modelTable.addRow(values);
     }
     
 }
