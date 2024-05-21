@@ -31,6 +31,7 @@ public class InterfacciaUploader extends JFrame implements ActionListener {
     private JPanel centralPanel = new JPanel();
     private JButton fileChooserButton = new JButton("Scegli File");
     private JComboBox hashComboBox = new JComboBox();
+    private JTextField fileName = new JTextField();
     public JRadioButton corruptedButton = new JRadioButton("Corrompi");
     public JButton sendButton = new JButton("Invia");
     
@@ -60,8 +61,11 @@ public class InterfacciaUploader extends JFrame implements ActionListener {
         fileChooserButton.addActionListener(this);
         connectButton.addActionListener(this);
         
+        fileName.setEditable(false);
+        
         ipTextField.setPreferredSize(new Dimension(100, 25));
         portTextField.setPreferredSize(new Dimension(100, 25));
+        fileName.setPreferredSize(new Dimension(100, 25));
         
         hashComboBox.addItem("MD5");
         hashComboBox.addItem("SHA-1");
@@ -77,6 +81,7 @@ public class InterfacciaUploader extends JFrame implements ActionListener {
         ipPanel.add(connectButton);
         
         centralPanel.add(fileChooserButton);
+        centralPanel.add(fileName);
         centralPanel.add(hashComboBox);
         centralPanel.add(Box.createRigidArea(new Dimension(30,0)));
         centralPanel.add(corruptedButton);
@@ -105,6 +110,8 @@ public class InterfacciaUploader extends JFrame implements ActionListener {
             
             if (returnValue == JFileChooser.APPROVE_OPTION) {
                 selectedFile = fileChooser.getSelectedFile();
+                
+                fileName.setText(selectedFile.getName());
                 
                 if (selectedFile == null) {
                     JOptionPane.showMessageDialog(this, "Nessun file selezionato!", "ERRORE: File non trovato", JOptionPane.ERROR_MESSAGE);

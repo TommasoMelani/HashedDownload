@@ -68,7 +68,6 @@ public class UploaderRunnable implements Runnable {
                             ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
 
                             String fileBytes = selectedFile.toPath().toString();
-                            System.out.println("SENDING FILE: " + fileBytes);
                             objectOutputStream.writeObject(fileBytes); // INVIA IL FILE NELLA SOCKET
                             objectOutputStream.flush();
 
@@ -84,12 +83,10 @@ public class UploaderRunnable implements Runnable {
                             objectOutputStream.writeObject(contentFileBytes); // INVIA IL CONTENUTO DEL FILE NELLA SOCKET
                             objectOutputStream.flush();
 
-                            System.out.println("SENDING ALGORITHM: " + usedAlgorithm);
                             objectOutputStream.writeObject(usedAlgorithm); // INVIA L'ALGORITMO NELLA SOCKET
                             objectOutputStream.flush();
 
                             String fileHashed =  UploaderRunnable.calculateHash(selectedFile, usedAlgorithm);
-                            System.out.println("SENDING PERSONAL HASH: " + fileHashed);
                             objectOutputStream.writeObject(fileHashed);
                             objectOutputStream.flush();
 
@@ -109,7 +106,6 @@ public class UploaderRunnable implements Runnable {
                             File corruptedFile = generateCorruptedFile(file);
                             
                             String corruptedFileBytes = corruptedFile.toPath().toString();
-                            System.out.println("SENDING FILE: " + corruptedFileBytes);
                             objectOutputStream.writeObject(corruptedFileBytes); // INVIA IL FILE NELLA SOCKET
                             objectOutputStream.flush();
 
@@ -125,12 +121,10 @@ public class UploaderRunnable implements Runnable {
                             objectOutputStream.writeObject(contentFileBytes); // INVIA IL CONTENUTO DEL FILE NELLA SOCKET
                             objectOutputStream.flush();
 
-                            System.out.println("SENDING ALGORITHM: " + usedAlgorithm);
                             objectOutputStream.writeObject(usedAlgorithm); // INVIA L'ALGORITMO NELLA SOCKET
                             objectOutputStream.flush();
 
                             String fileHashed =  UploaderRunnable.calculateHash(selectedFile, usedAlgorithm);
-                            System.out.println("SENDING PERSONAL HASH: " + fileHashed);
                             objectOutputStream.writeObject(fileHashed);
                             objectOutputStream.flush();
 
@@ -199,8 +193,10 @@ public class UploaderRunnable implements Runnable {
     private File generateCorruptedFile(File file) {
         
         File newFile = new File(file.getParentFile().getAbsolutePath() + "/corrupted_" + file.getName());
-        
+    
         try {
+            
+            newFile = Files.copy(file.getAbsoluteFile().toPath(), newFile.toPath()).toFile();
             
             int length = 1000;
             String randomChars = randomCharsGenerated(length);
@@ -219,7 +215,7 @@ public class UploaderRunnable implements Runnable {
             return newFile;
             
         } catch (Exception ex) {
-            
+            System.err.print(ex);
         }
         
         return newFile;
@@ -233,7 +229,6 @@ public class UploaderRunnable implements Runnable {
             sb.append(chars.charAt(random.nextInt(chars.length())));
         }
         return sb.toString();
-    
     }
     
 }

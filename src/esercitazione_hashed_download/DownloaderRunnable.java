@@ -86,7 +86,6 @@ public class DownloaderRunnable implements Runnable{
         String algorithm = (String) objectInputStream.readObject(); // RICEVE L'ALGORITMO DALLA SOCKET
 
         String calculatedHash = UploaderRunnable.calculateHash(receivedFile, algorithm);
-        System.out.println(calculatedHash);
         
         String hashReceived = (String) objectInputStream.readObject();
 
@@ -97,7 +96,7 @@ public class DownloaderRunnable implements Runnable{
             status = "CORROTTO";
         }
 
-        String[] values = {uploaderSocket.getInetAddress().getHostAddress() + ":" + uploaderSocket.getPort() ,receivedFile.getName(), calculatedHash, status};
+        String[] values = {uploaderSocket.getInetAddress().getHostAddress() + ":" + uploaderSocket.getPort() ,receivedFile.getName(), calculatedHash, hashReceived, status};
 
         downloaderIntrf.modelTable.addRow(values);
     }

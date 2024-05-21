@@ -34,7 +34,7 @@ public class InterfacciaDownloader extends JFrame implements ActionListener {
     
     private JPanel flowPanel = new JPanel();
     
-    public String[] columnsName = {"IP ", "Nome File", "Hash", "Integrità"};
+    public String[] columnsName = {"IP", "Nome File", "Calculated Hash", "Received Hash", "Integrità"};
     
     private JPanel tablePanel = new JPanel();
     public DefaultTableModel modelTable = new DefaultTableModel(columnsName, 0) {
@@ -55,16 +55,19 @@ public class InterfacciaDownloader extends JFrame implements ActionListener {
         flowPanel.setLayout(new FlowLayout());
         
         TableColumn column1 = table.getColumnModel().getColumn(0);
-        column1.setPreferredWidth(200);
+        column1.setPreferredWidth(50);
         
         TableColumn column2 = table.getColumnModel().getColumn(1);
-        column2.setPreferredWidth(300);
+        column2.setPreferredWidth(100);
 
         TableColumn column3 = table.getColumnModel().getColumn(2);
         column3.setPreferredWidth(200);
         
         TableColumn column4 = table.getColumnModel().getColumn(3);
-        column3.setPreferredWidth(100);
+        column4.setPreferredWidth(200);
+        
+        TableColumn column5 = table.getColumnModel().getColumn(4);
+        column5.setPreferredWidth(50);
         
         modelTable.addRow(columnsName);
         
